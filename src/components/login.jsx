@@ -9,6 +9,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [resetEmail, setResetEmail] = useState('');
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
   const { account, isConnected, connectWallet } = useWeb3();
 
@@ -20,12 +21,14 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setErrorMessage(''); // Clear previous errors
     try {
       await signInWithEmailAndPassword(auth, email, password);
       console.log('Login successful');
       navigate('/dashboard');
     } catch (error) {
       console.error('Error logging in:', error);
+      setErrorMessage('Invalid email or password. Please try again.');
     }
   };
 
@@ -51,16 +54,10 @@ const Login = () => {
     }
   };
 
-  const formatAddress = (address) => {
-    if (!address) return '';
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
   return (
-    <div className="flex justify-center items-center h-screen bg-[#1B1F3B]">
+    <div className="flex justify-center items-center h-screen bg-[#000000]">
       <div className="p-10 rounded-lg shadow-lg text-center w-96 bg-[#2C2F48]">
         {isResettingPassword ? (
-          // Password Reset Form
           <>
             <h2 className="mb-5 text-4xl text-[#6C63FF] font-bold">Reset Password</h2>
             <form onSubmit={handlePasswordReset}>
@@ -89,7 +86,6 @@ const Login = () => {
             </div>
           </>
         ) : (
-          // Login Form
           <>
             <h2 className="mb-5 text-4xl text-[#6C63FF] font-bold">Login</h2>
             <form onSubmit={handleLogin} className="mb-4">
@@ -109,6 +105,7 @@ const Login = () => {
                 className="w-full p-3 mb-3 rounded border border-gray-500 bg-[#3B3F5C] text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6C63FF]"
                 required
               />
+              {errorMessage && <p className="text-red-500 mb-3">{errorMessage}</p>}
               <button
                 type="submit"
                 className="w-full p-3 bg-[#6C63FF] text-white rounded hover:bg-[#FF6584] transition-colors duration-200"

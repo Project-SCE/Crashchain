@@ -33,7 +33,7 @@ const SignUp = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-[#1B1F3B]">
+    <div className="flex justify-center items-center h-screen bg-[#000000]">
       <div className="p-10 rounded-lg shadow-lg text-center w-96 bg-[#2C2F48]">
         <h2 className="mb-5 text-4xl text-[#6C63FF] font-bold">Sign Up</h2>
         {error && <p className="text-red-500">{error}</p>}

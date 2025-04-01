@@ -18,13 +18,9 @@ const crashReportRoutes = require("./routes/crashReport");
 
 const app = express();
 
-
-
-
-
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5174', // Frontend URL
+  origin: 'http://localhost:5175', // Frontend URL
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -34,6 +30,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/crash-report", crashReportRoutes);
 
+// Multer configuration for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  }
+});
+
 // Pinata SDK initialization
 const pinata = new PinataSDK({
   pinataJwt: process.env.PINATA_JWT,
@@ -41,7 +45,7 @@ const pinata = new PinataSDK({
 });
 
 // Multer setup for file upload handling
-const upload = multer({ storage: multer.memoryStorage() });
+
 
 // Ensure the `uploads` directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -187,7 +191,74 @@ const initializeDashboard = async () => {
   }
 };
 
-// Upload and process endpoint
+
+// Function to check required fields
+const requiredFieldsPresent = (body) => {
+  const required = ['vinNumber', 'location', 'impactSeverity', 'throttlePosition', 'brakePosition'];
+  return required.every(field => body[field] !== undefined && body[field] !== '');
+};
+
+// Function to generate PDF
+async function generatePDF(data) {
+  const doc = new PDFDocument();
+  const currentTime = new Date();
+  const pdfPath = path.join(uploadsDir, `report-${Date.now()}.pdf`);
+  const writeStream = fs.createWriteStream(pdfPath);
+
+  doc.pipe(writeStream);
+
+  // Add title
+  doc.fontSize(20).text('Crash Report', { align: 'center' });
+  doc.moveDown();
+
+  // Add timestamp
+  doc.fontSize(12).text(`Generated on: ${currentTime.toLocaleString()}`, { align: 'right' });
+  doc.moveDown();
+
+  // Vehicle Details
+  doc.fontSize(16).text('Vehicle Details');
+  doc.fontSize(12);
+  doc.text(`VIN Number: ${data.vinNumber || 'Not Provided'}`);
+  doc.text(`ECU Identifier: ${data.ecuIdentifier || 'Not Provided'}`);
+  doc.text(`Distance Traveled: ${data.distanceTraveled || 'Not Provided'}`);
+  doc.moveDown();
+
+  // Crash Details
+  doc.fontSize(16).text('Crash Details');
+  doc.fontSize(12);
+  doc.text(`Timestamp: ${currentTime.toLocaleString()}`);
+  doc.text(`Location: ${data.location}`);
+  doc.text(`Impact Severity: ${data.impactSeverity}`);
+  doc.moveDown();
+
+  // Vehicle State
+  doc.fontSize(16).text('Vehicle State at Time of Incident');
+  doc.fontSize(12);
+  doc.text(`Throttle Position: ${data.throttlePosition}%`);
+  doc.text(`Brake Position: ${data.brakePosition}%`);
+
+  if (data.telemetryData) {
+    doc.moveDown();
+    doc.fontSize(16).text('Telemetry Data');
+    doc.fontSize(12);
+    
+    const telemetry = JSON.parse(data.telemetryData);
+    if (telemetry.length > 0) {
+      const lastReading = telemetry[telemetry.length - 1];
+      doc.text(`Last Recorded Speed: ${lastReading.speed} km/h`);
+      doc.text(`Last Recorded Engine RPM: ${lastReading.engineRpm} RPM`);
+    }
+  }
+
+  doc.end();
+
+  return new Promise((resolve, reject) => {
+    writeStream.on('finish', () => resolve(pdfPath));
+    writeStream.on('error', reject);
+  });
+}
+
+// API endpoint
 app.post('/api/upload-and-process', upload.single('file'), async (req, res) => {
   try {
     if (!requiredFieldsPresent(req.body)) {
@@ -198,14 +269,12 @@ app.post('/api/upload-and-process', upload.single('file'), async (req, res) => {
     // Create a Pinata group for this upload
     console.log('[DEBUG] Creating Pinata group');
     const group = await pinata.groups.create({
-      name: `Upload-Group-${Date.now()}`,
+      name: `Crash-Report-${Date.now()}`,
     });
-    console.log(`[DEBUG] Group created: ${JSON.stringify(group)}`);
-
+    
     const groupCids = [];
 
-    // Handle uploaded file
-    let imageIpfsHash = null;
+    // Handle uploaded file if present
     if (req.file) {
       console.log('[DEBUG] Processing uploaded file');
       const formData = new FormData();
@@ -223,15 +292,11 @@ app.post('/api/upload-and-process', upload.single('file'), async (req, res) => {
         }
       );
 
-      imageIpfsHash = imageUploadResponse.data.IpfsHash;
-      console.log(`[DEBUG] File uploaded to IPFS with hash: ${imageIpfsHash}`);
-      groupCids.push(imageIpfsHash);
+      groupCids.push(imageUploadResponse.data.IpfsHash);
     }
 
     // Generate and upload PDF
-    const pdfPath = path.join(uploadsDir, `report-${Date.now()}.pdf`);
-    await generatePDF(req.body, pdfPath);
-
+    const pdfPath = await generatePDF(req.body);
     const pdfFormData = new FormData();
     pdfFormData.append('file', fs.createReadStream(pdfPath));
 
@@ -247,28 +312,23 @@ app.post('/api/upload-and-process', upload.single('file'), async (req, res) => {
       }
     );
 
-    const pdfIpfsHash = pdfUploadResponse.data.IpfsHash;
-    console.log(`[DEBUG] PDF uploaded to IPFS with hash: ${pdfIpfsHash}`);
-    groupCids.push(pdfIpfsHash);
+    groupCids.push(pdfUploadResponse.data.IpfsHash);
 
     // Clean up the PDF file
     fs.unlinkSync(pdfPath);
 
     // Add CIDs to the Pinata group
-    console.log(`[DEBUG] Adding CIDs to group: ${groupCids.join(', ')}`);
-    const addCidsResponse = await pinata.groups.addCids({
+    await pinata.groups.addCids({
       cids: groupCids,
       groupId: group.id,
     });
-    console.log(`[DEBUG] CIDs added to group: ${JSON.stringify(addCidsResponse)}`);
 
     // Store metadata in blockchain
     try {
-      console.log('[DEBUG] Storing metadata in blockchain');
-      const dataId = new mongoose.Types.ObjectId().toString(); // Generate a unique ID
+      const dataId = new mongoose.Types.ObjectId().toString();
       const transaction = await crashContract.methods.storeMetadata(
         dataId,
-        req.body.vinNumber || '',
+        req.body.vinNumber,
         req.body.location,
         groupCids
       ).send({
@@ -282,11 +342,8 @@ app.post('/api/upload-and-process', upload.single('file'), async (req, res) => {
       // Continue with the response even if blockchain storage fails
     }
 
-    await broadcastUpdate();
-
     res.json({
       message: 'Upload successful',
-      groupName: group.name,
       groupId: group.id,
       files: groupCids.map(cid => ({
         cid,
@@ -298,7 +355,6 @@ app.post('/api/upload-and-process', upload.single('file'), async (req, res) => {
     res.status(500).json({ error: 'Error processing upload' });
   }
 });
-
 // Fetch group data from IPFS
 app.get('/api/fetch-group-data/:groupId', async (req, res) => {
   const { groupId } = req.params;
@@ -447,39 +503,6 @@ web3.eth.getCode(contractAddress)
   })
   .catch(err => console.error('[DEBUG] Error verifying contract:', err));
 
-// Endpoint to receive ESP32 OBD data
-app.post('/store-obd-data', async (req, res) => {
-  const { vin, data, location } = req.body;
-
-  if (!vin || !data || !location) {
-    console.error('[DEBUG] Missing required fields');
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-
-  try {
-    console.log('[DEBUG] Storing OBD data in MongoDB');
-    // Store full data in MongoDB
-    const obdData = new OBDData({ vin, data, location });
-    const savedData = await obdData.save();
-    console.log(`[DEBUG] OBD data saved: ${JSON.stringify(savedData)}`);
-
-    // Store metadata in blockchain
-    const dataId = savedData._id.toString(); // MongoDB document ID
-    const accounts = await web3.eth.getAccounts();
-    console.log(`[DEBUG] Using account: ${accounts[0]}`);
-
-    await crashContract.methods.storeMetadata(dataId, vin, location).send({
-      from: accounts[0],
-      gas: 3000000,
-    });
-
-    console.log('[DEBUG] Metadata stored in blockchain');
-    res.json({ message: 'Data stored successfully', dataId });
-  } catch (error) {
-    console.error('[DEBUG] Error storing OBD data:', error);
-    res.status(500).json({ error: 'Error storing data' });
-  }
-});
 
 // Endpoint to verify metadata
 app.get('/verify-metadata/:index', async (req, res) => {

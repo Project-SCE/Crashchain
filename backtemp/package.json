@@ -1,0 +1,20 @@
+{
+  "name": "backtemp",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2",
+    "fs": "^0.0.1-security",
+    "multer": "^1.4.5-lts.1",
+    "path": "^0.12.7",
+    "ws": "^8.18.0"
+  }
+}

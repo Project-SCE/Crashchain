@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { FileText, Image, File, CheckCircle, XCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState([]);
@@ -8,6 +9,7 @@ const Dashboard = () => {
   const [wsStatus, setWsStatus] = useState("connecting");
   const ws = useRef(null);
   const reconnectTimeout = useRef(null);
+  const navigate = useNavigate();
 
   const connectWebSocket = () => {
     try {
@@ -62,28 +64,22 @@ const Dashboard = () => {
     return <File className="w-6 h-6 text-gray-500" />;
   };
 
-  const formatFileSize = (size) => {
-    if (!size) return "Unknown size";
-    const units = ["B", "KB", "MB", "GB"];
-    let unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-    return `${size.toFixed(2)} ${units[unitIndex]}`;
-  };
-
-  const isGroupVerified = (group) => {
-    if (!group.blockchainData?.length || !group.files?.length) return false;
-    const blockchainCids = group.blockchainData.flatMap((data) => data.cids || []);
-    return group.files.every((file) => blockchainCids.includes(file.cid));
-  };
-
   return (
-    <div className="p-6 bg-[#1B1F3B] min-h-screen flex flex-col items-center">
+    <div className="p-6 bg-[#000000] min-h-screen flex flex-col items-center">
       <div className="max-w-6xl w-full space-y-6 bg-[#2C2F48] p-6 rounded-lg shadow-lg">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-[#6C63FF]">Dashboard</h1>
+        {/* Top Section: Button on Left, Dashboard Title Centered */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => navigate('/hardsim')}
+            className="bg-[#6C63FF] text-white px-5 py-2 rounded-lg hover:bg-[#FF6584] transition-colors duration-200"
+          >
+            Data Upload Page
+          </button>
+
+          <h1 className="flex-1 text-center text-3xl font-bold text-[#6C63FF]">
+            Dashboard
+          </h1>
+
           <span
             className={`px-3 py-1 rounded-full text-sm font-medium ${
               wsStatus === "connected"
@@ -96,6 +92,7 @@ const Dashboard = () => {
             {wsStatus === "connected" ? "Live Updates Active" : wsStatus === "connecting" ? "Connecting..." : "Connection Lost"}
           </span>
         </div>
+
         {loading && <p className="text-center text-gray-300">Loading dashboard data...</p>}
         {error && <p className="text-center text-red-600">{error}</p>}
         {dashboardData.length === 0 && !loading && !error && (
@@ -107,7 +104,7 @@ const Dashboard = () => {
           <div key={group.groupId} className="bg-[#3B3F5C] rounded-lg shadow-md p-6 border border-gray-500">
             <div className="flex justify-between items-center border-b border-gray-600 pb-4 mb-4">
               <h2 className="text-xl font-semibold text-gray-300">{group.groupName}</h2>
-              {isGroupVerified(group) ? (
+              {group.blockchainData?.length && group.files?.length ? (
                 <span className="flex items-center text-green-600">
                   <CheckCircle className="w-5 h-5 mr-1" /> Verified
                 </span>
@@ -124,7 +121,6 @@ const Dashboard = () => {
                   <div className="flex-grow">
                     <h3 className="font-medium text-gray-300 truncate">{file.name || "Unnamed File"}</h3>
                     <p className="text-sm text-gray-400">CID: {file.cid}</p>
-                    <p className="text-sm text-gray-400">{formatFileSize(file.size)}</p>
                   </div>
                   <a href={`https://gateway.pinata.cloud/ipfs/${file.cid}`} target="_blank" rel="noopener noreferrer" className="px-4 py-2 text-sm text-white bg-[#6C63FF] hover:bg-[#FF6584] rounded-lg transition-colors duration-200">
                     View File

@@ -5,7 +5,7 @@ export default function Footer() {
 
     return (
         <div className="w-full bg-[#1B1F3B]">
-            <footer className="footer p-10 text-[#1B1F3B] flex flex-col justify-center items-center">
+<footer className="footer p-10 text-[#F5F5F5] bg-[#FF6584] flex flex-col justify-center items-center">
                 <p className="text-center">
                     Copyright &#169; {YearVar.getFullYear()} - All rights reserved.
                 </p>

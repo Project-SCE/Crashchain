@@ -1,7 +1,8 @@
+import Card from "./card"; 
 function ContentSection() {
   return (
-    <div className="relative isolate overflow-hidden bg-[#1B1F3B] px-6 py-24 sm:py-32 lg:overflow-visible lg:px-0 text-center">
-      <div id = "about" className="mx-auto max-w-2xl">
+    <div className="relative isolate overflow-hidden bg-[#000000] px-6 py-24 sm:py-32 lg:overflow-visible lg:px-0 text-center">
+      <div id="About" className="mx-auto max-w-2xl">
         {/* About Us Section */}
         <p className="text-base font-semibold leading-7 text-[#6C63FF]">About Us</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-[#F5F5F5] sm:text-4xl">
@@ -13,61 +14,40 @@ function ContentSection() {
           transparent, verifiable, and trustworthy.
         </p>
       </div>
+      <div className="mt-8 flex flex-wrap gap-40 justify-start pl-40">
+  <Card 
+    title="JOBIN TOM" 
+    frontText="" 
+    backText="A technology enthusiast dedicated to enhancing digital forensic solutions through blockchain and innovative web development." 
+    githubLink="https://github.com/jobint001" 
+    linkedinLink="https://www.linkedin.com/in/jobintomofficial" 
+  />
+  <Card 
+    title="MUHAMED ADIL" 
+    frontText="" 
+    backText="A passionate computer science student with expertise in web development, eager to leverage technology to improve forensic investigations." 
+    githubLink="https://github.com/adilzubair" 
+    linkedinLink="https://www.linkedin.com/in/muhamedadil" 
+  />
+    <Card 
+    title="JUMANA JOUHAR" 
+    frontText="" 
+    backText="A dedicated learner, committed to applying innovative solutions that enhance the accuracy and efficiency of forensic investigations." 
+    githubLink="https://github.com/jumanajouhar" 
+    linkedinLink="https://www.linkedin.com/in/jumana-jouhar" 
+  />
+    <Card 
+    title="JIYA MARY JOBY" 
+    frontText="" 
+    backText="An aspiring web developer, committed to creating intuitive applications that support blockchain-based forensic solutions." 
+    githubLink="https://github.com/jiya42" 
+    linkedinLink="https://www.linkedin.com/in/jiya-mary-joby" 
+  />
+  {/* Add more cards with different content */}
+</div>
 
-      {/* Meet the Team Section */}
-      <div id="meet-the-team" className="mt-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mx-auto max-w-7xl">
-          {/* Team members */}
-          <div className="bg-[#1B1F3B] rounded-lg shadow p-6 text-center">
-            <h3 className="text-xl font-semibold mb-2 text-[#F5F5F5]">JOBIN TOM</h3>
-            <p className="text-[#F5F5F5]">A technology enthusiast dedicated to enhancing digital forensic solutions through blockchain and innovative web development.</p>
-            <div className="flex justify-center mt-4">
-              <a href="https://github.com/jobint001">
-                <img src="src/assets/github.png" alt="github" width="40" height="40" className="mx-2" />
-              </a>
-              <a href="https://www.linkedin.com/in/jobintomofficial">
-                <img src="src/assets/image.png" alt="linkedin" width="40" height="40" className="mx-2" />
-              </a>
-            </div>
-          </div>
-          <div className="bg-[#1B1F3B] rounded-lg shadow p-6 text-center">
-            <h3 className="text-xl font-semibold mb-2 text-[#F5F5F5]">MUHAMED ADIL</h3>
-            <p className="text-[#F5F5F5]">A passionate computer science student with expertise in web development, eager to leverage technology to improve forensic investigations.</p>
-            <div className="flex justify-center mt-4">
-              <a href="https://github.com/adilzubair">
-                <img src="src/assets/github.png" alt="github" width="40" height="40" className="mx-2" />
-              </a>
-              <a href="https://www.linkedin.com/in/muhamedadil">
-                <img src="src/assets/image.png" alt="linkedin" width="40" height="40" className="mx-2" />
-              </a>
-            </div>
-          </div>
-          <div className="bg-[#1B1F3B] rounded-lg shadow p-6 text-center">
-            <h3 className="text-xl font-semibold mb-2 text-[#F5F5F5]">JUMANA JOUHAR</h3>
-            <p className="text-[#F5F5F5]">A dedicated learner, committed to applying innovative solutions that enhance the accuracy and efficiency of forensic investigations.</p>
-            <div className="flex justify-center mt-4">
-              <a href="https://github.com/jumanajouhar">
-                <img src="src/assets/github.png" alt="github" width="40" height="40" className="mx-2" />
-              </a>
-              <a href="https://www.linkedin.com/in/jumana-jouhar">
-                <img src="src/assets/image.png" alt="linkedin" width="40" height="40" className="mx-2" />
-              </a>
-            </div>
-          </div>
-          <div className="bg-[#1B1F3B] rounded-lg shadow p-6 text-center">
-            <h3 className="text-xl font-semibold mb-2 text-[#F5F5F5]">JIYA MARY JOBY</h3>
-            <p className="text-[#F5F5F5]">An aspiring web developer, committed to creating intuitive applications that support blockchain-based forensic solutions.</p>
-            <div className="flex justify-center mt-4">
-              <a href="https://github.com/jiya42">
-                <img src="src/assets/github.png" alt="github" width="40" height="40" className="mx-2" />
-              </a>
-              <a href="https://www.linkedin.com/in/jiya-mary-joby">
-                <img src="src/assets/image.png" alt="linkedin" width="40" height="40" className="mx-2" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+
+
 
       {/* Mission Statement Section */}
       <div id = "values" className="mx-auto max-w-2xl mt-12">

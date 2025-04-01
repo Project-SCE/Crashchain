@@ -29,30 +29,16 @@ function generateCrashReport(data, outputPath) {
         function formatAnalysis(analysis) {
             if (Array.isArray(analysis)) {
                 return analysis.map(item => {
-                    let text = `File: ${item.file}\n\n`;
+                    let text = `File: ${item.file}\n`;
                     if (typeof item.analysis === 'string') {
-                        text += item.analysis
-                            .replace(/\*\*/g, '') // Remove bold markers
-                            .replace(/###/g, '') // Remove large heading markers
-                            .replace(/---/g, '') // Remove horizontal rule markers
-                            .replace(/1\./g, '•') // Replace numbered lists with bullets
-                            .replace(/2\./g, '•')
-                            .replace(/3\./g, '•')
-                            .replace(/4\./g, '•');
+                        text += item.analysis;
                     } else if (typeof item.analysis === 'object') {
                         text += JSON.stringify(item.analysis, null, 2);
                     }
                     return text;
                 }).join('\n\n');
             } else if (typeof analysis === 'string') {
-                return analysis
-                    .replace(/\*\*/g, '') // Remove bold markers
-                    .replace(/###/g, '') // Remove large heading markers
-                    .replace(/---/g, '') // Remove horizontal rule markers
-                    .replace(/1\./g, '•') // Replace numbered lists with bullets
-                    .replace(/2\./g, '•')
-                    .replace(/3\./g, '•')
-                    .replace(/4\./g, '•');
+                return analysis;
             } else if (typeof analysis === 'object') {
                 return JSON.stringify(analysis, null, 2);
             }
@@ -87,8 +73,7 @@ function generateCrashReport(data, outputPath) {
         const formattedAnalysis = formatAnalysis(data.analysis);
         doc.text(formattedAnalysis, {
             align: 'left',
-            paragraphGap: 5,
-            lineGap: 2 // Add spacing between lines for better readability
+            paragraphGap: 5
         });
         doc.moveDown(1);
 

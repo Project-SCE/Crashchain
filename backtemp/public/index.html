@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32-CAM Stream</title>
+</head>
+<body>
+    <h2>ESP32-CAM Live Stream</h2>
+    <img id="videoStream" style="width:640px;height:480px">
+    
+    <script>
+        const ws = new WebSocket('ws://localhost:8080');
+        const videoElement = document.getElementById('videoStream');
+        
+        ws.onmessage = function(event) {
+            // Convert binary data to image
+            const imageBlob = new Blob([event.data], { type: 'image/jpeg' });
+            videoElement.src = URL.createObjectURL(imageBlob);
+        };
+        
+        ws.onclose = function() {
+            console.log('WebSocket connection closed');
+        };
+        
+        ws.onerror = function(err) {
+            console.error('WebSocket error:', err);
+        };
+    </script>
+</body>
+</html>
